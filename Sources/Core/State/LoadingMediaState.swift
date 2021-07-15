@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 
 import AVFoundation
+import MediaPlayer
 import UIKit
 
 final class LoadingMediaState: PlayerState {
@@ -72,8 +73,8 @@ final class LoadingMediaState: PlayerState {
          It seems to be a good idea to reset player current item
          Fix side effect when coming from failed state
          */
-        context.player.replaceCurrentItem(with: nil)
-
+        cleanUpCurrentItem()
+        
         context.audioSession.activate()
 
         setupInterruptionCallback()
@@ -129,7 +130,13 @@ final class LoadingMediaState: PlayerState {
     private func cancelMediaLoading() {
         context.currentItem?.asset.cancelLoading()
         context.currentItem?.cancelPendingSeeks()
+        cleanUpCurrentItem()
+    }
+    
+    private func cleanUpCurrentItem() {
         context.player.replaceCurrentItem(with: nil)
+        context.nowPlaying.overrideInfoCenter(for: MPNowPlayingInfoPropertyElapsedPlaybackTime, value: 0.0)
+        context.nowPlaying.overrideInfoCenter(for: MPMediaItemPropertyPlaybackDuration, value: 0.0)
     }
     
     private func processMedia(_ media: PlayerMedia) {
